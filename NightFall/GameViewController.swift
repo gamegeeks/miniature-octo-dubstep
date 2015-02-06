@@ -49,7 +49,7 @@ class GameViewController: UIViewController {
         
         // Present the scene.
         skView.presentScene(scene)
-        level = Level(filename: "Level_1")
+        level = Level(filename: "Level_3")
         scene.level = level
         scene.addTiles()
 //        backgroundMusic.play()

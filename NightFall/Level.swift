@@ -342,8 +342,9 @@ class Level {
                 }
             }
         }
-        
         possibleSwaps = set
+        
+        
     }
     
     private func createInitialEngrams() -> Set<Engram> {

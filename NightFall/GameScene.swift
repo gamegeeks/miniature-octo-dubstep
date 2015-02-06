@@ -33,6 +33,21 @@ class GameScene: SKScene {
         
         anchorPoint = CGPoint(x: 0.5, y: 0.5)
         
+        var effect = SKEffectNode()
+        effect.filter = CIFilter(name: "blur")
+        effect.shouldEnableEffects = true
+        /*
+        SKEffectNodes allow you to apply CI Filters to a node.
+        
+        There is a CI Filter for Gaussian Blur. So Create a SKEffectNode, and assign it a blur filter, then add the button as a child.
+        
+        How do you animate it?
+        
+        Use SKAction to create a custom action, and change the parameters of filter, however, this can be slow and doesn't always give the 'progressive' blur effect you might expect, so what I do is this:
+        
+        I create a filter and SKEffectNode like described above, then I render the result to a Texture, using SKView.textureForNode. I then add the resulting texture to an array, after that I loop this, continuinng to apply the blur effect on top of the previous image created, until I have a set number of frames. Then use the textures created to make an animation with SKAction.animateWithTextures. In my experience, this comes out very nicely.
+        */
+        
         let background = SKSpriteNode(imageNamed: "Background")
         addChild(background)
         

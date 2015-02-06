@@ -16,18 +16,18 @@ enum EngramType: Int, Printable {
     }
     var spriteName: String {
         let spriteNames = [
-            "Croissant",
-            "Cupcake",
-            "Danish",
-            "Donut",
-            "Macaroon",
-            "SugarEngram"]
+            "Purple2",
+            "Purple1",
+            "Yellow2",
+            "Yellow1",
+            "Blue2",
+            "Blue1"]
         
         return spriteNames[rawValue - 1]
     }
     
     var highlightedSpriteName: String {
-        return spriteName + "-Highlighted"
+        return spriteName + "High"
     }
     
     var description: String{
