@@ -17,7 +17,6 @@
 		7C1B59861A7FEDF4005A535A /* NightFallTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C1B59851A7FEDF4005A535A /* NightFallTests.swift */; };
 		7C1B59921A7FF18C005A535A /* Engram.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C1B59911A7FF18C005A535A /* Engram.swift */; };
 		7C1B59941A7FF4AA005A535A /* Array2D.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C1B59931A7FF4AA005A535A /* Array2D.swift */; };
-		7C1B59961A800A38005A535A /* Set.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C1B59951A800A38005A535A /* Set.swift */; };
 		7C1B59981A800A6F005A535A /* Level.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C1B59971A800A6F005A535A /* Level.swift */; };
 		7C1B599F1A800D65005A535A /* Level_0.json in Resources */ = {isa = PBXBuildFile; fileRef = 7C1B599A1A800D65005A535A /* Level_0.json */; };
 		7C1B59A01A800D65005A535A /* Level_1.json in Resources */ = {isa = PBXBuildFile; fileRef = 7C1B599B1A800D65005A535A /* Level_1.json */; };
@@ -35,7 +34,7 @@
 		7C1B59B71A804B04005A535A /* Mining by Moonlight.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 7C1B59B11A804B04005A535A /* Mining by Moonlight.mp3 */; };
 		7C1B59B81A804B04005A535A /* Scrape.wav in Resources */ = {isa = PBXBuildFile; fileRef = 7C1B59B21A804B04005A535A /* Scrape.wav */; };
 		7C1B59BA1A8131E7005A535A /* Grid.atlas in Resources */ = {isa = PBXBuildFile; fileRef = 7C1B59B91A8131E7005A535A /* Grid.atlas */; };
-		7C78C5801A853C2900BFB521 /* goodEngrams.atlas in Resources */ = {isa = PBXBuildFile; fileRef = 7C78C57F1A853C2900BFB521 /* goodEngrams.atlas */; };
+		7C78C5821A855D5100BFB521 /* engram2.atlas in Resources */ = {isa = PBXBuildFile; fileRef = 7C78C5811A855D5100BFB521 /* engram2.atlas */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -63,7 +62,6 @@
 		7C1B59851A7FEDF4005A535A /* NightFallTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NightFallTests.swift; sourceTree = "<group>"; };
 		7C1B59911A7FF18C005A535A /* Engram.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = Engram.swift; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
 		7C1B59931A7FF4AA005A535A /* Array2D.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Array2D.swift; sourceTree = "<group>"; };
-		7C1B59951A800A38005A535A /* Set.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Set.swift; sourceTree = "<group>"; };
 		7C1B59971A800A6F005A535A /* Level.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = Level.swift; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
 		7C1B599A1A800D65005A535A /* Level_0.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = Level_0.json; sourceTree = "<group>"; };
 		7C1B599B1A800D65005A535A /* Level_1.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = Level_1.json; sourceTree = "<group>"; };
@@ -81,7 +79,7 @@
 		7C1B59B11A804B04005A535A /* Mining by Moonlight.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = "Mining by Moonlight.mp3"; sourceTree = "<group>"; };
 		7C1B59B21A804B04005A535A /* Scrape.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = Scrape.wav; sourceTree = "<group>"; };
 		7C1B59B91A8131E7005A535A /* Grid.atlas */ = {isa = PBXFileReference; lastKnownFileType = folder.skatlas; path = Grid.atlas; sourceTree = "<group>"; };
-		7C78C57F1A853C2900BFB521 /* goodEngrams.atlas */ = {isa = PBXFileReference; lastKnownFileType = folder.skatlas; path = goodEngrams.atlas; sourceTree = "<group>"; };
+		7C78C5811A855D5100BFB521 /* engram2.atlas */ = {isa = PBXFileReference; lastKnownFileType = folder.skatlas; path = engram2.atlas; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -129,13 +127,12 @@
 				7C1B59AA1A804121005A535A /* Chain.swift */,
 				7C1B59911A7FF18C005A535A /* Engram.swift */,
 				7C1B59931A7FF4AA005A535A /* Array2D.swift */,
-				7C1B59951A800A38005A535A /* Set.swift */,
 				7C1B59A61A800DC9005A535A /* Extensions.swift */,
 				7C1B59971A800A6F005A535A /* Level.swift */,
 				7C1B596F1A7FEDF4005A535A /* GameScene.swift */,
 				7C1B59711A7FEDF4005A535A /* GameViewController.swift */,
 				7C1B59A41A800D87005A535A /* Tile.swift */,
-				7C78C57F1A853C2900BFB521 /* goodEngrams.atlas */,
+				7C78C5811A855D5100BFB521 /* engram2.atlas */,
 				7C1B59B91A8131E7005A535A /* Grid.atlas */,
 				7C1B59991A800D65005A535A /* Levels */,
 				7C1B59AC1A804B04005A535A /* Sounds */,
@@ -241,7 +238,9 @@
 		7C1B595E1A7FEDF4005A535A /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0610;
+				LastSwiftMigration = 0720;
+				LastSwiftUpdateCheck = 0720;
+				LastUpgradeCheck = 0720;
 				ORGANIZATIONNAME = "Visceral Origami LLC";
 				TargetAttributes = {
 					7C1B59651A7FEDF4005A535A = {
@@ -283,7 +282,6 @@
 				7C1B59B61A804B04005A535A /* Ka-Ching.wav in Resources */,
 				7C1B59B51A804B04005A535A /* Error.wav in Resources */,
 				7C1B59B81A804B04005A535A /* Scrape.wav in Resources */,
-				7C78C5801A853C2900BFB521 /* goodEngrams.atlas in Resources */,
 				7C1B59A21A800D65005A535A /* Level_3.json in Resources */,
 				7C1B597A1A7FEDF4005A535A /* LaunchScreen.xib in Resources */,
 				7C1B599F1A800D65005A535A /* Level_0.json in Resources */,
@@ -291,6 +289,7 @@
 				7C1B59B31A804B04005A535A /* Chomp.wav in Resources */,
 				7C1B59B41A804B04005A535A /* Drip.wav in Resources */,
 				7C1B596E1A7FEDF4005A535A /* GameScene.sks in Resources */,
+				7C78C5821A855D5100BFB521 /* engram2.atlas in Resources */,
 				7C1B59A11A800D65005A535A /* Level_2.json in Resources */,
 				7C1B59751A7FEDF4005A535A /* Main.storyboard in Resources */,
 				7C1B59B71A804B04005A535A /* Mining by Moonlight.mp3 in Resources */,
@@ -318,7 +317,6 @@
 				7C1B59921A7FF18C005A535A /* Engram.swift in Sources */,
 				7C1B59A91A801EEE005A535A /* Swap.swift in Sources */,
 				7C1B59A51A800D87005A535A /* Tile.swift in Sources */,
-				7C1B59961A800A38005A535A /* Set.swift in Sources */,
 				7C1B59721A7FEDF4005A535A /* GameViewController.swift in Sources */,
 				7C1B596C1A7FEDF4005A535A /* AppDelegate.swift in Sources */,
 				7C1B59941A7FF4AA005A535A /* Array2D.swift in Sources */,
@@ -383,6 +381,7 @@
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				COPY_PHASE_STRIP = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_OPTIMIZATION_LEVEL = 0;
@@ -446,6 +445,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				INFOPLIST_FILE = NightFall/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.visceralorigami.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -456,6 +456,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				INFOPLIST_FILE = NightFall/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.visceralorigami.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -474,6 +475,7 @@
 				);
 				INFOPLIST_FILE = NightFallTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.visceralorigami.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/NightFall.app/NightFall";
 			};
@@ -489,6 +491,7 @@
 				);
 				INFOPLIST_FILE = NightFallTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.visceralorigami.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/NightFall.app/NightFall";
 			};

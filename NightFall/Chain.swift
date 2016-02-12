@@ -8,11 +8,11 @@
 
 import Foundation
 
-class Chain: Hashable, Printable {
+class Chain: Hashable, CustomStringConvertible {
     var engrams = [Engram]()
     var score:Int! = 0
     
-    enum ChainType: Printable {
+    enum ChainType: CustomStringConvertible {
         case Horizontal
         case Vertical
         case EllShapped
@@ -59,7 +59,7 @@ class Chain: Hashable, Printable {
     }
     
     var hashValue: Int {
-        return reduce(engrams, 0) { $0.hashValue ^ $1.hashValue }
+        return engrams.reduce(0) { $0.hashValue ^ $1.hashValue }
     }
 }
 

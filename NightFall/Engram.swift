@@ -8,7 +8,7 @@
 
 import SpriteKit
 
-enum EngramType: Int, Printable {
+enum EngramType: Int, CustomStringConvertible {
     case Unknown = 0, Croissant, Cupcake, Danish, Donut, Macaroon, SugarEngram
     
     static func random() -> EngramType {
@@ -40,7 +40,7 @@ func ==(lhs: Engram, rhs: Engram) -> Bool {
     return lhs.column == rhs.column && lhs.row == rhs.row
 }
 
-class Engram: Printable, Hashable{
+class Engram: CustomStringConvertible, Hashable{
     var column: Int
     var row: Int
     let engramType: EngramType

@@ -1,9 +1,24 @@
+//
+//  GameScene.swift
+//  EngramCrunch
+//
+//  Created by Matthijs on 19-06-14.
+//  Copyright (c) 2014 Razeware LLC. All rights reserved.
+//
+
 import SpriteKit
 
 class GameScene: SKScene {
+    // This is marked as ! because it will not initially have a value, but pretty
+    // soon after the GameScene is created it will be given a Level object, and
+    // from then on it will always have one (it will never be nil again).
     var level: Level!
-    var swipeFromColumn: Int?
-    var swipeFromRow: Int?
+    
+    // The scene handles touches. If it recognizes that the user makes a swipe,
+    // it will call this swipe handler. This is how it communicates back to the
+    // ViewController that a swap needs to take place. You could also use a
+    // delegate for this.
+    var swipeHandler: ((Swap) -> ())?
     
     let TileWidth: CGFloat = 32.0
     let TileHeight: CGFloat = 36.0
@@ -14,6 +29,13 @@ class GameScene: SKScene {
     let cropLayer = SKCropNode()
     let maskLayer = SKNode()
     
+    // The column and row numbers of the Engram that the player first touched
+    // when he started his swipe movement. These are marked ? because they may
+    // become nil (meaning no swipe is in progress).
+    var swipeFromColumn: Int?
+    var swipeFromRow: Int?
+    
+    // Sprite that is drawn on top of the Engram that the player is trying to swap.
     var selectionSprite = SKSpriteNode()
     
     // Pre-load the resources
@@ -23,261 +45,65 @@ class GameScene: SKScene {
     let fallingEngramSound = SKAction.playSoundFileNamed("Scrape.wav", waitForCompletion: false)
     let addEngramSound = SKAction.playSoundFileNamed("Drip.wav", waitForCompletion: false)
     
-    //MARK:Init stuff
+    // MARK: Game Setup
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder) is not used in this app")
     }
     
     override init(size: CGSize) {
         super.init(size: size)
-        
         anchorPoint = CGPoint(x: 0.5, y: 0.5)
         
-        var effect = SKEffectNode()
-        effect.filter = CIFilter(name: "blur")
-        effect.shouldEnableEffects = true
-        /*
-        SKEffectNodes allow you to apply CI Filters to a node.
-        
-        There is a CI Filter for Gaussian Blur. So Create a SKEffectNode, and assign it a blur filter, then add the button as a child.
-        
-        How do you animate it?
-        
-        Use SKAction to create a custom action, and change the parameters of filter, however, this can be slow and doesn't always give the 'progressive' blur effect you might expect, so what I do is this:
-        
-        I create a filter and SKEffectNode like described above, then I render the result to a Texture, using SKView.textureForNode. I then add the resulting texture to an array, after that I loop this, continuinng to apply the blur effect on top of the previous image created, until I have a set number of frames. Then use the textures created to make an animation with SKAction.animateWithTextures. In my experience, this comes out very nicely.
-        */
-        
+        // Put an image on the background. Because the scene's anchorPoint is
+        // (0.5, 0.5), the background image will always be centered on the screen.
         let background = SKSpriteNode(imageNamed: "Background")
         addChild(background)
         
-        addChild(gameLayer)
+        // Add a new node that is the container for all other layers on the playing
+        // field. This gameLayer is also centered in the screen.
         gameLayer.hidden = true
+        addChild(gameLayer)
         
         let layerPosition = CGPoint(
             x: -TileWidth * CGFloat(NumColumns) / 2,
             y: -TileHeight * CGFloat(NumRows) / 2)
         
+        // The tiles layer represents the shape of the level. It contains a sprite
+        // node for each square that is filled in.
         tilesLayer.position = layerPosition
         gameLayer.addChild(tilesLayer)
         
+        // We use a crop layer to prevent Engrams from being drawn across gaps
+        // in the level design.
         gameLayer.addChild(cropLayer)
         
+        // The mask layer determines which part of the EngramsLayer is visible.
         maskLayer.position = layerPosition
         cropLayer.maskNode = maskLayer
         
+        // This layer holds the Engram sprites. The positions of these sprites
+        // are relative to the EngramsLayer's bottom-left corner.
         engramsLayer.position = layerPosition
         cropLayer.addChild(engramsLayer)
         
+        // nil means that these properties have invalid values.
         swipeFromColumn = nil
         swipeFromRow = nil
         
-        SKLabelNode(fontNamed: "GillSans-BoldItalic")
+        // Pre-load the label font so prevent delays during game play.
+        let cacherLabel = SKLabelNode(fontNamed: "GillSans-BoldItalic")
+        cacherLabel.text = ""
     }
- 
-    //MARK:Touches stuff
-    override func touchesBegan(touches: NSSet, withEvent event: UIEvent) {
-        // 1
-        let touch = touches.anyObject() as UITouch
-        let location = touch.locationInNode(engramsLayer)
-        // 2
-        let (success, column, row) = convertPoint(location)
-        if success {
-            // 3
-            if let engram = level.engramAtColumn(column, row: row) {
-                // 4
-                showSelectionIndicatorForEngram(engram)
-                swipeFromColumn = column
-                swipeFromRow = row
-            }
-        }
-    }
-    
-    override func touchesMoved(touches: NSSet, withEvent event: UIEvent) {
-        // 1
-        if swipeFromColumn == nil { return }
-        
-        // 2
-        let touch = touches.anyObject() as UITouch
-        let location = touch.locationInNode(engramsLayer)
-        
-        let (success, column, row) = convertPoint(location)
-        if success {
-            
-            // 3
-            var horzDelta = 0, vertDelta = 0
-            if column < swipeFromColumn! {          // swipe left
-                horzDelta = -1
-            } else if column > swipeFromColumn! {   // swipe right
-                horzDelta = 1
-            } else if row < swipeFromRow! {         // swipe down
-                vertDelta = -1
-            } else if row > swipeFromRow! {         // swipe up
-                vertDelta = 1
-            }
-            
-            // 4
-            if horzDelta != 0 || vertDelta != 0 {
-                trySwapHorizontal(horzDelta, vertical: vertDelta)
-                hideSelectionIndicator()
-                // 5
-                swipeFromColumn = nil
-            }
-        }
-    }
-    
-    override func touchesEnded(touches: NSSet, withEvent event: UIEvent) {
-        if selectionSprite.parent != nil && swipeFromColumn != nil {
-            hideSelectionIndicator()
-        }
-        swipeFromColumn = nil
-        swipeFromRow = nil
-    }
-    
-    override func touchesCancelled(touches: NSSet, withEvent event: UIEvent) {
-        touchesEnded(touches, withEvent: event)
-    }
-    
-    //MARK:Swapping
-    func trySwapHorizontal(horzDelta: Int, vertical vertDelta: Int) {
-        // 1
-        let toColumn = swipeFromColumn! + horzDelta
-        let toRow = swipeFromRow! + vertDelta
-        // 2
-        if toColumn < 0 || toColumn >= NumColumns { return }
-        if toRow < 0 || toRow >= NumRows { return }
-        // 3
-        if let toEngram = level.engramAtColumn(toColumn, row: toRow) {
-            if let fromEngram = level.engramAtColumn(swipeFromColumn!, row: swipeFromRow!) {
-                // 4
-                if let handler = swipeHandler {
-                    let swap = Swap(engramA: fromEngram, engramB: toEngram)
-                    handler(swap)
-                }
-            }
-        }
-    }
-    
-    
-    
-    //MARK:Conversions
-    func pointForColumn(column: Int, row: Int) -> CGPoint {
-        return CGPoint(
-            x: CGFloat(column)*TileWidth + TileWidth/2,
-            y: CGFloat(row)*TileHeight + TileHeight/2)
-    }
-    
-    func convertPoint(point: CGPoint) -> (success: Bool, column: Int, row: Int) {
-        if point.x >= 0 && point.x < CGFloat(NumColumns)*TileWidth &&
-            point.y >= 0 && point.y < CGFloat(NumRows)*TileHeight {
-                return (true, Int(point.x / TileWidth), Int(point.y / TileHeight))
-        } else {
-            return (false, 0, 0)  // invalid location
-        }
-    }
-    
-    //MARK:Game Transitions
-    func animateGameOver(completion: () -> ()) {
-        let action = SKAction.moveBy(CGVector(dx: 0, dy: -size.height), duration: 0.3)
-        action.timingMode = .EaseIn
-        gameLayer.runAction(action, completion: completion)
-    }
-    
-    func animateBeginGame(completion: () -> ()) {
-        gameLayer.hidden = false
-        gameLayer.position = CGPoint(x: 0, y: size.height)
-        let action = SKAction.moveBy(CGVector(dx: 0, dy: -size.height), duration: 0.3)
-        action.timingMode = .EaseOut
-        gameLayer.runAction(action, completion: completion)
-    }
-    
-    //MARK:Engram Management
-    
-    func showSelectionIndicatorForEngram(engram: Engram) {
-        if selectionSprite.parent != nil {
-            selectionSprite.removeFromParent()
-        }
-        
-        if let sprite = engram.sprite {
-            let texture = SKTexture(imageNamed: engram.engramType.highlightedSpriteName)
-            selectionSprite.size = texture.size()
-            selectionSprite.runAction(SKAction.setTexture(texture))
-            
-            sprite.addChild(selectionSprite)
-            selectionSprite.alpha = 1.0
-        }
-    }
-    
-    func hideSelectionIndicator() {
-        selectionSprite.runAction(SKAction.sequence([
-            SKAction.fadeOutWithDuration(0.3),
-            SKAction.removeFromParent()]))
-    }
-    
-    func animateInvalidSwap(swap: Swap, completion: () -> ()) {
-        let spriteA = swap.engramA.sprite!
-        let spriteB = swap.engramB.sprite!
-        
-        spriteA.zPosition = 100
-        spriteB.zPosition = 90
-        
-        let Duration: NSTimeInterval = 0.2
-        
-        let moveA = SKAction.moveTo(spriteB.position, duration: Duration)
-        moveA.timingMode = .EaseOut
-        
-        let moveB = SKAction.moveTo(spriteA.position, duration: Duration)
-        moveB.timingMode = .EaseOut
-        
-        spriteA.runAction(SKAction.sequence([moveA, moveB]), completion: completion)
-        spriteB.runAction(SKAction.sequence([moveB, moveA]))
-    }
-    
-    func animateSwap(swap: Swap, completion: () -> ()) {
-        let spriteA = swap.engramA.sprite!
-        let spriteB = swap.engramB.sprite!
-        
-        spriteA.zPosition = 100
-        spriteB.zPosition = 90
-        
-        let Duration: NSTimeInterval = 0.3
-        
-        let moveA = SKAction.moveTo(spriteB.position, duration: Duration)
-        moveA.timingMode = .EaseOut
-        spriteA.runAction(moveA, completion: completion)
-        
-        let moveB = SKAction.moveTo(spriteA.position, duration: Duration)
-        moveB.timingMode = .EaseOut
-        spriteB.runAction(moveB)
-    }
-    
-    func animateMatchedEngrams(chains: Set<Chain>, completion: () -> ()) {
-        for chain in chains {
-            animateScoreForChain(chain)
-            for engram in chain.engrams {
-                if let sprite = engram.sprite {
-                    if sprite.actionForKey("removing") == nil {
-                        let scaleAction = SKAction.scaleTo(0.1, duration: 0.3)
-                        scaleAction.timingMode = .EaseOut
-                        sprite.runAction(SKAction.sequence([scaleAction, SKAction.removeFromParent()]),
-                            withKey:"removing")
-                    }
-                }
-            }
-        }
-        //runAction(matchSound)
-        runAction(SKAction.waitForDuration(0.3), completion: completion)
-    }
-    
-    var swipeHandler: ((Swap) -> ())?
     
     func addSpritesForEngrams(engrams: Set<Engram>) {
         for engram in engrams {
+            // Create a new sprite for the Engram and add it to the EngramsLayer.
             let sprite = SKSpriteNode(imageNamed: engram.engramType.spriteName)
             sprite.position = pointForColumn(engram.column, row:engram.row)
             engramsLayer.addChild(sprite)
             engram.sprite = sprite
-            // Give each engram sprite a small, random delay. Then fade them in.
+            
+            // Give each Engram sprite a small, random delay. Then fade them in.
             sprite.alpha = 0
             sprite.xScale = 0.5
             sprite.yScale = 0.5
@@ -293,91 +119,6 @@ class GameScene: SKScene {
         }
     }
     
-    func animateNewEngrams(columns: [[Engram]], completion: () -> ()) {
-        // 1
-        var longestDuration: NSTimeInterval = 0
-        
-        for array in columns {
-            // 2
-            let startRow = array[0].row + 1
-            
-            for (idx, engram) in enumerate(array) {
-                // 3
-                let sprite = SKSpriteNode(imageNamed: engram.engramType.spriteName)
-                sprite.position = pointForColumn(engram.column, row: startRow)
-                engramsLayer.addChild(sprite)
-                engram.sprite = sprite
-                // 4
-                let delay = 0.1 + 0.2 * NSTimeInterval(array.count - idx - 1)
-                // 5
-                let duration = NSTimeInterval(startRow - engram.row) * 0.1
-                longestDuration = max(longestDuration, duration + delay)
-                // 6
-                let newPosition = pointForColumn(engram.column, row: engram.row)
-                let moveAction = SKAction.moveTo(newPosition, duration: duration)
-                moveAction.timingMode = .EaseOut
-                sprite.alpha = 0
-                sprite.runAction(
-                    SKAction.sequence([
-                        SKAction.waitForDuration(delay),
-                        SKAction.group([
-                            SKAction.fadeInWithDuration(0.05),
-                            moveAction,
-                            addEngramSound])
-                        ]))
-            }
-        }
-        // 7
-        runAction(SKAction.waitForDuration(longestDuration), completion: completion)
-    }
-    
-    func animateScoreForChain(chain: Chain) {
-        // Figure out what the midpoint of the chain is.
-        let firstSprite = chain.firstEngram().sprite!
-        let lastSprite = chain.lastEngram().sprite!
-        let centerPosition = CGPoint(
-            x: (firstSprite.position.x + lastSprite.position.x)/2,
-            y: (firstSprite.position.y + lastSprite.position.y)/2 - 8)
-        
-        // Add a label for the score that slowly floats up.
-        let scoreLabel = SKLabelNode(fontNamed: "GillSans-BoldItalic")
-        scoreLabel.fontSize = 16
-        scoreLabel.text = NSString(format: "%ld", chain.score)
-        scoreLabel.position = centerPosition
-        scoreLabel.zPosition = 300
-        engramsLayer.addChild(scoreLabel)
-        
-        let moveAction = SKAction.moveBy(CGVector(dx: 0, dy: 3), duration: 0.7)
-        moveAction.timingMode = .EaseOut
-        scoreLabel.runAction(SKAction.sequence([moveAction, SKAction.removeFromParent()]))
-    }
-    
-    func animateFallingEngrams(columns: [[Engram]], completion: () -> ()) {
-        // 1
-        var longestDuration: NSTimeInterval = 0
-        for array in columns {
-            for (idx, engram) in enumerate(array) {
-                let newPosition = pointForColumn(engram.column, row: engram.row)
-                // 2
-                let delay = 0.05 + 0.15*NSTimeInterval(idx)
-                // 3
-                let sprite = engram.sprite!
-                let duration = NSTimeInterval(((sprite.position.y - newPosition.y) / TileHeight) * 0.1)
-                // 4
-                longestDuration = max(longestDuration, duration + delay)
-                // 5
-                let moveAction = SKAction.moveTo(newPosition, duration: duration)
-                moveAction.timingMode = .EaseOut
-                sprite.runAction(
-                    SKAction.sequence([
-                        SKAction.waitForDuration(delay),
-                        SKAction.group([moveAction, fallingEngramSound])]))
-            }
-        }
-        // 6
-        runAction(SKAction.waitForDuration(longestDuration), completion: completion)
-    }
-    
     func removeAllEngramSprites() {
         engramsLayer.removeAllChildren()
     }
@@ -385,15 +126,22 @@ class GameScene: SKScene {
     func addTiles() {
         for row in 0..<NumRows {
             for column in 0..<NumColumns {
-                if let tile = level.tileAtColumn(column, row: row) {
+                
+                // If there is a tile at this position, then create a new tile
+                // sprite and add it to the mask layer.
+                if let _ = level.tileAtColumn(column, row: row) {
                     let tileNode = SKSpriteNode(imageNamed: "MaskTile")
                     tileNode.position = pointForColumn(column, row: row)
                     maskLayer.addChild(tileNode)
                 }
             }
         }
+        
+        // The tile pattern is drawn *in between* the level tiles. That's why
+        // there is an extra column and row of them.
         for row in 0...NumRows {
             for column in 0...NumColumns {
+                
                 let topLeft     = (column > 0) && (row < NumRows)
                     && level.tileAtColumn(column - 1, row: row) != nil
                 let bottomLeft  = (column > 0) && (row > 0)
@@ -421,5 +169,337 @@ class GameScene: SKScene {
         }
     }
     
+    // MARK: Conversion Routines
+    
+    // Converts a column,row pair into a CGPoint that is relative to the EngramLayer.
+    func pointForColumn(column: Int, row: Int) -> CGPoint {
+        return CGPoint(
+            x: CGFloat(column)*TileWidth + TileWidth/2,
+            y: CGFloat(row)*TileHeight + TileHeight/2)
+    }
+    
+    // Converts a point relative to the EngramLayer into column and row numbers.
+    func convertPoint(point: CGPoint) -> (success: Bool, column: Int, row: Int) {
+        // Is this a valid location within the Engrams layer? If yes,
+        // calculate the corresponding row and column numbers.
+        if point.x >= 0 && point.x < CGFloat(NumColumns)*TileWidth &&
+            point.y >= 0 && point.y < CGFloat(NumRows)*TileHeight {
+                return (true, Int(point.x / TileWidth), Int(point.y / TileHeight))
+        } else {
+            return (false, 0, 0)  // invalid location
+        }
+    }
+    
+    // MARK: Detecting Swipes
+    
+    override func touchesBegan(touches: Set<UITouch>, withEvent event: UIEvent?) {
+        // Convert the touch location to a point relative to the EngramsLayer.
+        let touch :UITouch = touches.first!
+        let location = touch.locationInNode(engramsLayer)
+        
+        // If the touch is inside a square, then this might be the start of a
+        // swipe motion.
+        let (success, column, row) = convertPoint(location)
+        if success {
+            // The touch must be on a Engram, not on an empty tile.
+            if let engram = level.engramAtColumn(column, row: row) {
+                // Remember in which column and row the swipe started, so we can compare
+                // them later to find the direction of the swipe. This is also the first
+                // Engram that will be swapped.
+                swipeFromColumn = column
+                swipeFromRow = row
+                
+                showSelectionIndicatorForEngram(engram)
+            }
+        }
+    }
+    
+    override func touchesMoved(touches: Set<UITouch>, withEvent event: UIEvent?) {
+        // If swipeFromColumn is nil then either the swipe began outside
+        // the valid area or the game has already swapped the Engrams and we need
+        // to ignore the rest of the motion.
+        if swipeFromColumn == nil { return }
+        
+        let touch :UITouch = touches.first!
+        let location = touch.locationInNode(engramsLayer)
+        
+        let (success, column, row) = convertPoint(location)
+        if success {
+            
+            // Figure out in which direction the player swiped. Diagonal swipes
+            // are not allowed.
+            var horzDelta = 0, vertDelta = 0
+            if column < swipeFromColumn! {          // swipe left
+                horzDelta = -1
+            } else if column > swipeFromColumn! {   // swipe right
+                horzDelta = 1
+            } else if row < swipeFromRow! {         // swipe down
+                vertDelta = -1
+            } else if row > swipeFromRow! {         // swipe up
+                vertDelta = 1
+            }
+            
+            // Only try swapping when the user swiped into a new square.
+            if horzDelta != 0 || vertDelta != 0 {
+                trySwapHorizontal(horzDelta, vertical: vertDelta)
+                hideSelectionIndicator()
+                
+                // Ignore the rest of this swipe motion from now on.
+                swipeFromColumn = nil
+            }
+        }
+    }
+    
+    // We get here after the user performs a swipe. This sets in motion a whole
+    // chain of events: 1) swap the Engrams, 2) remove the matching lines, 3)
+    // drop new Engrams into the screen, 4) check if they create new matches,
+    // and so on.
+    func trySwapHorizontal(horzDelta: Int, vertical vertDelta: Int) {
+        let toColumn = swipeFromColumn! + horzDelta
+        let toRow = swipeFromRow! + vertDelta
+        
+        // Going outside the bounds of the array? This happens when the user swipes
+        // over the edge of the grid. We should ignore such swipes.
+        if toColumn < 0 || toColumn >= NumColumns { return }
+        if toRow < 0 || toRow >= NumRows { return }
+        
+        // Can't swap if there is no Engram to swap with. This happens when the user
+        // swipes into a gap where there is no tile.
+        if let toEngram = level.engramAtColumn(toColumn, row: toRow),
+            let fromEngram = level.engramAtColumn(swipeFromColumn!, row: swipeFromRow!),
+            let handler = swipeHandler {
+                
+                // Communicate this swap request back to the ViewController.
+                let swap = Swap(engramA: fromEngram, engramB: toEngram)
+                handler(swap)
+        }
+    }
+    
+    override func touchesEnded(touches: Set<UITouch>, withEvent event: UIEvent?) {
+        // Remove the selection indicator with a fade-out. We only need to do this
+        // when the player didn't actually swipe.
+        if selectionSprite.parent != nil && swipeFromColumn != nil {
+            hideSelectionIndicator()
+        }
+        
+        // If the gesture ended, regardless of whether if was a valid swipe or not,
+        // reset the starting column and row numbers.
+        swipeFromColumn = nil
+        swipeFromRow = nil
+    }
+    
+    override func touchesCancelled(touches: Set<UITouch>?, withEvent event: UIEvent?) {
+        touchesEnded(touches!, withEvent: event)
+    }
+    
+    // MARK: Animations
+    
+    func animateSwap(swap: Swap, completion: () -> ()) {
+        let spriteA = swap.engramA.sprite!
+        let spriteB = swap.engramB.sprite!
+        
+        // Put the Engram you started with on top.
+        spriteA.zPosition = 100
+        spriteB.zPosition = 90
+        
+        let Duration: NSTimeInterval = 0.3
+        
+        let moveA = SKAction.moveTo(spriteB.position, duration: Duration)
+        moveA.timingMode = .EaseOut
+        spriteA.runAction(moveA, completion: completion)
+        
+        let moveB = SKAction.moveTo(spriteA.position, duration: Duration)
+        moveB.timingMode = .EaseOut
+        spriteB.runAction(moveB)
+        
+        runAction(swapSound)
+    }
+    
+    func animateInvalidSwap(swap: Swap, completion: () -> ()) {
+        let spriteA = swap.engramA.sprite!
+        let spriteB = swap.engramB.sprite!
+        
+        spriteA.zPosition = 100
+        spriteB.zPosition = 90
+        
+        let Duration: NSTimeInterval = 0.2
+        
+        let moveA = SKAction.moveTo(spriteB.position, duration: Duration)
+        moveA.timingMode = .EaseOut
+        
+        let moveB = SKAction.moveTo(spriteA.position, duration: Duration)
+        moveB.timingMode = .EaseOut
+        
+        spriteA.runAction(SKAction.sequence([moveA, moveB]), completion: completion)
+        spriteB.runAction(SKAction.sequence([moveB, moveA]))
+        
+        runAction(invalidSwapSound)
+    }
+    
+    func animateMatchedEngrams(chains: Set<Chain>, completion: () -> ()) {
+        for chain in chains {
+            animateScoreForChain(chain)
+            for engram in chain.engrams {
+                
+                // It may happen that the same Engram object is part of two chains
+                // (L-shape or T-shape match). In that case, its sprite should only be
+                // removed once.
+                if let sprite = engram.sprite {
+                    if sprite.actionForKey("removing") == nil {
+                        let scaleAction = SKAction.scaleTo(0.1, duration: 0.3)
+                        scaleAction.timingMode = .EaseOut
+                        sprite.runAction(SKAction.sequence([scaleAction, SKAction.removeFromParent()]),
+                            withKey:"removing")
+                    }
+                }
+            }
+        }
+        
+        runAction(matchSound)
+        
+        // Continue with the game after the animations have completed.
+        runAction(SKAction.waitForDuration(0.3), completion: completion)
+    }
+    
+    func animateScoreForChain(chain: Chain) {
+        // Figure out what the midpoint of the chain is.
+        let firstSprite = chain.firstEngram().sprite!
+        let lastSprite = chain.lastEngram().sprite!
+        let centerPosition = CGPoint(
+            x: (firstSprite.position.x + lastSprite.position.x)/2,
+            y: (firstSprite.position.y + lastSprite.position.y)/2 - 8)
+        
+        // Add a label for the score that slowly floats up.
+        let scoreLabel = SKLabelNode(fontNamed: "GillSans-BoldItalic")
+        scoreLabel.fontSize = 16
+        scoreLabel.text = String(format: "%ld", chain.score)
+        scoreLabel.position = centerPosition
+        scoreLabel.zPosition = 300
+        engramsLayer.addChild(scoreLabel)
+        
+        let moveAction = SKAction.moveBy(CGVector(dx: 0, dy: 3), duration: 0.7)
+        moveAction.timingMode = .EaseOut
+        scoreLabel.runAction(SKAction.sequence([moveAction, SKAction.removeFromParent()]))
+    }
+    
+    func animateFallingEngrams(columns: [[Engram]], completion: () -> ()) {
+        var longestDuration: NSTimeInterval = 0
+        for array in columns {
+            for (idx, Engram) in array.enumerate() {
+                let newPosition = pointForColumn(Engram.column, row: Engram.row)
+                
+                // The further away from the hole you are, the bigger the delay
+                // on the animation.
+                let delay = 0.05 + 0.15*NSTimeInterval(idx)
+                
+                let sprite = Engram.sprite!   // sprite always exists at this point
+                
+                // Calculate duration based on far Engram has to fall (0.1 seconds
+                // per tile).
+                let duration = NSTimeInterval(((sprite.position.y - newPosition.y) / TileHeight) * 0.1)
+                longestDuration = max(longestDuration, duration + delay)
+                
+                let moveAction = SKAction.moveTo(newPosition, duration: duration)
+                moveAction.timingMode = .EaseOut
+                sprite.runAction(
+                    SKAction.sequence([
+                        SKAction.waitForDuration(delay),
+                        SKAction.group([moveAction, fallingEngramSound])]))
+            }
+        }
+        
+        // Wait until all the Engrams have fallen down before we continue.
+        runAction(SKAction.waitForDuration(longestDuration), completion: completion)
+    }
+    
+    func animateNewEngrams(columns: [[Engram]], completion: () -> ()) {
+        // We don't want to continue with the game until all the animations are
+        // complete, so we calculate how long the longest animation lasts, and
+        // wait that amount before we trigger the completion block.
+        var longestDuration: NSTimeInterval = 0
+        
+        for array in columns {
+            
+            // The new sprite should start out just above the first tile in this column.
+            // An easy way to find this tile is to look at the row of the first Engram
+            // in the array, which is always the top-most one for this column.
+            let startRow = array[0].row + 1
+            
+            for (idx, Engram) in array.enumerate() {
+                
+                // Create a new sprite for the Engram.
+                let sprite = SKSpriteNode(imageNamed: Engram.engramType.spriteName)
+                sprite.position = pointForColumn(Engram.column, row: startRow)
+                engramsLayer.addChild(sprite)
+                Engram.sprite = sprite
+                
+                // Give each Engram that's higher up a longer delay, so they appear to
+                // fall after one another.
+                let delay = 0.1 + 0.2 * NSTimeInterval(array.count - idx - 1)
+                
+                // Calculate duration based on far the Engram has to fall.
+                let duration = NSTimeInterval(startRow - Engram.row) * 0.1
+                longestDuration = max(longestDuration, duration + delay)
+                
+                // Animate the sprite falling down. Also fade it in to make the sprite
+                // appear less abruptly.
+                let newPosition = pointForColumn(Engram.column, row: Engram.row)
+                let moveAction = SKAction.moveTo(newPosition, duration: duration)
+                moveAction.timingMode = .EaseOut
+                sprite.alpha = 0
+                sprite.runAction(
+                    SKAction.sequence([
+                        SKAction.waitForDuration(delay),
+                        SKAction.group([
+                            SKAction.fadeInWithDuration(0.05),
+                            moveAction,
+                            addEngramSound])
+                        ]))
+            }
+        }
+        
+        // Wait until the animations are done before we continue.
+        runAction(SKAction.waitForDuration(longestDuration), completion: completion)
+    }
+    
+    func animateGameOver(completion: () -> ()) {
+        let action = SKAction.moveBy(CGVector(dx: 0, dy: -size.height), duration: 0.3)
+        action.timingMode = .EaseIn
+        gameLayer.runAction(action, completion: completion)
+    }
+    
+    func animateBeginGame(completion: () -> ()) {
+        gameLayer.hidden = false
+        gameLayer.position = CGPoint(x: 0, y: size.height)
+        let action = SKAction.moveBy(CGVector(dx: 0, dy: -size.height), duration: 0.3)
+        action.timingMode = .EaseOut
+        gameLayer.runAction(action, completion: completion)
+    }
+    
+    // MARK: Selection Indicator
+    
+    func showSelectionIndicatorForEngram(engram: Engram) {
+        // If the selection indicator is still visible, then first remove it.
+        if selectionSprite.parent != nil {
+            selectionSprite.removeFromParent()
+        }
+        
+        // Add the selection indicator as a child to the Engram that the player
+        // tapped on and fade it in. Note: simply setting the texture on the sprite
+        // doesn't give it the correct size; using an SKAction does.
+        if let sprite = engram.sprite {
+            let texture = SKTexture(imageNamed: engram.engramType.highlightedSpriteName)
+            selectionSprite.size = texture.size()
+            selectionSprite.runAction(SKAction.setTexture(texture))
+            
+            sprite.addChild(selectionSprite)
+            selectionSprite.alpha = 1.0
+        }
+    }
+    
+    func hideSelectionIndicator() {
+        selectionSprite.runAction(SKAction.sequence([
+            SKAction.fadeOutWithDuration(0.3),
+            SKAction.removeFromParent()]))
+    }
 }
-

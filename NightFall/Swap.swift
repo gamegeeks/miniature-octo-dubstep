@@ -8,7 +8,7 @@
 
 import Foundation
 
-struct Swap: Printable, Hashable {
+struct Swap: CustomStringConvertible, Hashable {
     let engramA: Engram
     let engramB: Engram
     

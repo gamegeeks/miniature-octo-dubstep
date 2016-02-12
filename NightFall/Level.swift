@@ -16,28 +16,40 @@ class Level {
     private var possibleSwaps = Set<Swap>()
     
     private var comboMultiplier = 0
-    let targetScore: Int!
-    let maximumMoves: Int!
+    let targetScore: Int
+    let maximumMoves: Int
     
     init(filename: String) {
-        // 1
+        
         if let dictionary = Dictionary<String, AnyObject>.loadJSONFromBundle(filename) {
-            // 2
+            
+            // The dictionary contains an array named "tiles". This array contains
+            // one element for each row of the level. Each of those row elements in
+            // turn is also an array describing the columns in that row. If a column
+            // is 1, it means there is a tile at that location, 0 means there is not.
             if let tilesArray: AnyObject = dictionary["tiles"] {
-                // 3
-                for (row, rowArray) in enumerate(tilesArray as [[Int]]) {
-                    // 4
+                
+                // Loop through the rows...
+                for (row, rowArray) in (tilesArray as! [[Int]]).enumerate() {
+                    
+                    // Note: In Sprite Kit (0,0) is at the bottom of the screen,
+                    // so we need to read this file upside down.
                     let tileRow = NumRows - row - 1
-                    // 5
-                    for (column, value) in enumerate(rowArray) {
+                    
+                    // Loop through the columns in the current row...
+                    for (column, value) in rowArray.enumerate() {
+                        
+                        // If the value is 1, create a tile object.
                         if value == 1 {
                             tiles[column, tileRow] = Tile()
                         }
                     }
                 }
-                targetScore = (dictionary["targetScore"] as NSNumber).integerValue
-                maximumMoves = (dictionary["moves"] as NSNumber).integerValue
+                
             }
+            
+            targetScore = dictionary["targetScore"] as! Int
+            maximumMoves = dictionary["moves"] as! Int
         }
         
     }
@@ -89,7 +101,7 @@ class Level {
 
     func shuffle() -> Set<Engram> {
         var set: Set<Engram>
-        do {
+        repeat {
             set = createInitialEngrams()
             detectPossibleSwaps()
             //println("possible swaps: \(possibleSwaps)")
@@ -142,7 +154,7 @@ class Level {
                 if tiles[column, row] != nil {
                     // 3
                     var newEngramType: EngramType
-                    do {
+                    repeat {
                         newEngramType = EngramType.random()
                     } while newEngramType == engramType
                     engramType = newEngramType
@@ -192,13 +204,13 @@ class Level {
                         engrams[column + 2, row]?.engramType == matchType {
                             // 5
                             let chain = Chain(chainType: .Horizontal)
-                            do {
+                            repeat {
                                 chain.addEngram(engrams[column, row]!)
                                 ++column
                             }
                                 while column < NumColumns && engrams[column, row]?.engramType == matchType
                             
-                            set.addElement(chain)
+                            set.insert(chain)
                             continue
                     }
                 }
@@ -221,13 +233,13 @@ class Level {
                         engrams[column, row + 2]?.engramType == matchType {
                             
                             let chain = Chain(chainType: .Vertical)
-                            do {
+                            repeat {
                                 chain.addEngram(engrams[column, row]!)
                                 ++row
                             }
                                 while row < NumRows && engrams[column, row]?.engramType == matchType
                             
-                            set.addElement(chain)
+                            set.insert(chain)
                             continue
                     }
                 }
@@ -246,27 +258,27 @@ class Level {
             for vChain in verticalChains{
                 //start with 5's so we can ignore the others
                 if vChain.engrams[1].engramType == hChain.engrams[1].engramType{
-                    var newChain = Chain(chainType: Chain.ChainType.Fiver)
+                    let newChain = Chain(chainType: Chain.ChainType.Fiver)
                     newChain.engrams = vChain.engrams + hChain.engrams
-                    bigChains.addElement(newChain)
-                    horizontalChains.removeElement(hChain)
-                    verticalChains.removeElement(vChain)
+                    bigChains.insert(newChain)
+                    horizontalChains.remove(hChain)
+                    verticalChains.remove(vChain)
                 }else if (hChain.engrams[0] == vChain.engrams[0]) || (hChain.engrams[0] == vChain.engrams[2]) ||
                     (hChain.engrams[2] == vChain.engrams[0]) || (hChain.engrams[2] == vChain.engrams[2]){
                        //detect L's
-                        var newChain = Chain(chainType: Chain.ChainType.EllShapped)
+                        let newChain = Chain(chainType: Chain.ChainType.EllShapped)
                         newChain.engrams = vChain.engrams + hChain.engrams
-                        bigChains.addElement(newChain)
-                        horizontalChains.removeElement(hChain)
-                        verticalChains.removeElement(vChain)
+                        bigChains.insert(newChain)
+                        horizontalChains.remove(hChain)
+                        verticalChains.remove(vChain)
                 }else if (hChain.engrams[1] == vChain.engrams[0]) || (hChain.engrams[1] == vChain.engrams[2]) ||
                     (hChain.engrams[2] == vChain.engrams[1]) || (hChain.engrams[0] == vChain.engrams[1]){
                        //detect T's
-                        var newChain = Chain(chainType: Chain.ChainType.TeeShapped)
+                        let newChain = Chain(chainType: Chain.ChainType.TeeShapped)
                         newChain.engrams = vChain.engrams + hChain.engrams
-                        bigChains.addElement(newChain)
-                        horizontalChains.removeElement(hChain)
-                        verticalChains.removeElement(vChain)
+                        bigChains.insert(newChain)
+                        horizontalChains.remove(hChain)
+                        verticalChains.remove(vChain)
                 }
                 
             }
@@ -281,7 +293,7 @@ class Level {
         calculateScores(horizontalChains)
         calculateScores(verticalChains)
         
-        return horizontalChains.unionSet(verticalChains).unionSet(bigChains)
+        return horizontalChains.union(verticalChains).union(bigChains)
     }
     
     private func removeEngrams(chains: Set<Chain>) {
@@ -293,7 +305,7 @@ class Level {
     }
     
     func isPossibleSwap(swap: Swap) -> Bool {
-        return possibleSwaps.containsElement(swap)
+        return possibleSwaps.contains(swap)
     }
     
     func detectPossibleSwaps() {
@@ -311,7 +323,7 @@ class Level {
                             // Is either engram now part of a chain?
                             if hasChainAtColumn(column, row: row + 1) ||
                                 hasChainAtColumn(column, row: row) {
-                                    set.addElement(Swap(engramA: engram, engramB: other))
+                                    set.insert(Swap(engramA: engram, engramB: other))
                             }
                             
                             // Swap them back
@@ -331,7 +343,7 @@ class Level {
                             // Is either engram now part of a chain?
                             if hasChainAtColumn(column + 1, row: row) ||
                                 hasChainAtColumn(column, row: row) {
-                                    set.addElement(Swap(engramA: engram, engramB: other))
+                                    set.insert(Swap(engramA: engram, engramB: other))
                             }
                             
                             // Swap them back
@@ -357,7 +369,7 @@ class Level {
                 if tiles[column, row] != nil {
                 // 2
                     var engramType: EngramType
-                    do {
+                    repeat {
                         engramType = EngramType.random()
                     }
                         while (column >= 2 &&
@@ -372,7 +384,7 @@ class Level {
                 engrams[column, row] = engram
                 
                 // 4
-                set.addElement(engram)
+                set.insert(engram)
                 }
             }
         }

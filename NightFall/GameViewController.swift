@@ -17,9 +17,9 @@ class GameViewController: UIViewController {
     
     lazy var backgroundMusic: AVAudioPlayer = {
         let url = NSBundle.mainBundle().URLForResource("Mining by Moonlight", withExtension: "mp3")
-        let player = AVAudioPlayer(contentsOfURL: url, error: nil)
-        player.numberOfLoops = -1
-        return player
+        let player = try? AVAudioPlayer(contentsOfURL: url!)
+        player!.numberOfLoops = -1
+        return player!
         }()
     
     override func prefersStatusBarHidden() -> Bool {
@@ -30,15 +30,15 @@ class GameViewController: UIViewController {
         return true
     }
     
-    override func supportedInterfaceOrientations() -> Int {
-        return Int(UIInterfaceOrientationMask.AllButUpsideDown.rawValue)
+    override func supportedInterfaceOrientations() -> UIInterfaceOrientationMask {
+        return UIInterfaceOrientationMask.AllButUpsideDown
     }
     
     override func viewDidLoad() {
         super.viewDidLoad()
         gameOverPanel.hidden = true
         // Configure the view.
-        let skView = view as SKView
+        let skView = view as! SKView
         skView.multipleTouchEnabled = false
         
         // Create and configure the scene.
@@ -132,9 +132,9 @@ class GameViewController: UIViewController {
     }
     
     func updateLabels() {
-        targetLabel.text = NSString(format: "%ld", level.targetScore)
-        moveLabel.text = NSString(format: "%ld", movesLeft)
-        scoreLabel.text = NSString(format: "%ld", score)
+        targetLabel.text = NSString(format: "%ld", level.targetScore) as String
+        moveLabel.text = NSString(format: "%ld", movesLeft) as String
+        scoreLabel.text = NSString(format: "%ld", score) as String
     }
     
     func handleSwipe(swap: Swap) {
