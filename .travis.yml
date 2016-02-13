@@ -2,3 +2,5 @@ language: swift
 osx_image: xcode7.2
 xcode_project: NightFall.xcodeproj # path to your xcodeproj folder
 xcode_scheme: NightFall
+
+script: xctool -project NightFall.xcodeproj -target NightFall -sdk iphonesimulator ONLY_ACTIVE_ARCH=NO
