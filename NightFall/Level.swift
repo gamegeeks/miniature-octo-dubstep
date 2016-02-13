@@ -16,8 +16,8 @@ class Level {
     private var possibleSwaps = Set<Swap>()
     
     private var comboMultiplier = 0
-    let targetScore: Int
-    let maximumMoves: Int
+    var targetScore: Int!
+    var maximumMoves: Int!
     
     init(filename: String) {
         
@@ -45,13 +45,10 @@ class Level {
                         }
                     }
                 }
-                
             }
-            
-            targetScore = dictionary["targetScore"] as! Int
-            maximumMoves = dictionary["moves"] as! Int
+            self.targetScore = dictionary["targetScore"] as! Int
+            self.maximumMoves = dictionary["moves"] as! Int
         }
-        
     }
     
     private func calculateScores(chains: Set<Chain>) {

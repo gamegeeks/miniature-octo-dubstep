@@ -56,7 +56,7 @@ class GameScene: SKScene {
         
         // Put an image on the background. Because the scene's anchorPoint is
         // (0.5, 0.5), the background image will always be centered on the screen.
-        let background = SKSpriteNode(imageNamed: "Background")
+        let background =  SKSpriteNode(imageNamed: "Background")
         addChild(background)
         
         // Add a new node that is the container for all other layers on the playing
